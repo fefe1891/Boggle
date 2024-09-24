@@ -1,0 +1,44 @@
+$(function() {
+    class BoggleGame {
+        constructor(gameId) {
+            this.gameId = gameId;
+            this.score = 0;
+            this.word = new Set();
+
+            this.form = $(".add-word");
+            this.input = $(".word");
+            this.messages = $(".messages");
+            this.scoreDisplay = $(".score");
+
+            this.form.on('submit', this.handleSubmit.bind(this));
+        }
+
+        async handleSubmit(e) {
+            e.preventDefault();
+
+            let word = this.input.val();
+            if (!word || this.word.has(word)) {
+                return;
+            }
+
+            const response = await axios.get('/check-word', { params: { word: word } });
+            const result = response.data.result;
+
+            if (result === 'ok') {
+                this.score += word.length;
+                this.scoreDisplay.text(this.score);
+                this.word.add(word);
+                this.showMessage(`Added: ${word}`, "ok");
+            } else {
+                this.showMessage(`${word} is not a valid word`, "err");
+            }
+
+            this.input.val('').focus();
+        }
+
+        showMessage(msg, cls) {
+            this.messages.text(msg).removeClass().addClass(cls);
+        }
+    }
+    window.BoggleGame = BoggleGame
+});
